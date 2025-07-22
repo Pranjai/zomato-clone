@@ -3,22 +3,32 @@ import { createContext, useContext, useState, useEffect, Children } from "react"
 const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-    const [token, setToken] = useState(localStorage.getItem('token'));
+    const [token, setToken] = useState();
     const [user, setUser] = useState();
 
-    const login = (token, userType) => {
+    const login = (token, user) => {
         localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
         setToken(token);
-        setUser((prev) => ({
-            ...prev,
-            userType: userType
-        }))
+        setUser(user);
     }
 
     const logout = () => {
-        localStorage.removeItem('token');
+        localStorage.clear();
         setToken(null);
+        setUser(null);
     }
+
+    useEffect(() => {
+        const storedToken = localStorage.getItem('token');
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (storedToken) {
+            setToken(storedToken);
+        }
+        if (storedUser) {
+            setUser(storedUser);
+        }
+    }, []);
 
     return (
         <UserContext.Provider value ={{ user, token, login, logout, isLoggedIn: !!token }}>

@@ -1,19 +1,15 @@
 import { useEffect, useState } from "react";
+import { Plus, Edit, Trash2, Star } from "lucide-react";
 import { useUser } from "../context/UserContext";
 import axios from "axios";
 const API = import.meta.env.VITE_API_URL;
+import FoodItemForm from "./FoodItemForm";
 
 function VendorDashboard() {
     const { token, logout } = useUser();
     const [showModal, setShowModal] = useState(false);
     const [foodItems, setFoodItems] = useState([]);
-    const [formData, setFormData] = useState({
-        name: "",
-        price: "",
-        category: "Veg",
-        addons: [],
-        tags: []
-    })
+    const [editingItem, setEditingItem] = useState(null);
 
     const fetchData = async () => {
         try {
@@ -29,9 +25,9 @@ function VendorDashboard() {
         }
     };
 
-    const deleteFoodItem = async (foodItem) => {
+    const deleteFoodItem = async (foodItemId) => {
         try {
-            const res = await axios.delete(`${API}/vendors/foods/${foodItem._id}`, {
+            const res = await axios.delete(`${API}/vendors/foods/${foodItemId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -47,220 +43,131 @@ function VendorDashboard() {
         fetchData();
     }, [])
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
+    const handleAddItem = async (formData) => {
         try {
-            const res = await axios.post(`${API}/vendors/foods`, { item: formData }, {
+            const res = await axios.post(`${API}/vendors/foods`, formData, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
-            })
+            });
             console.log(res.data.message);
+            setShowModal(false);
             fetchData();
-            setShowModal(false)
         } catch (error) {
             console.error(error.response?.data?.message);
         }
     }
 
-    const handleChange = (e) => {
-        let { name, value } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }))
-    }
-
-    const handleAddonChange = (index, e) => {
-        let { name, value } = e.target;
-        const updated = [...formData.addons];
-        updated[index][name] = value;
-        setFormData((prev) => ({
-            ...prev,
-            addons: [...updated]
-        }))
-    }
-
-    const addAddonField = () => {
-        setFormData((prev) => ({
-            ...prev,
-            addons: [...formData.addons, { name: "", price: ""}]
-        }))
-    }
-
-    const removeAddonField = (index) => {
-        const updated = [...formData.addons];
-        updated.splice(index, 1);
-        setFormData((prev) => ({
-            ...prev,
-            addons: [...updated]
-        }))
-    }
-
-    const handleTagChange = (e, index) => {
-        const updated = [...formData.tags]
-        updated[index] = e.target.value;
-        setFormData((prev) => ({
-            ...prev,
-            tags: [...updated]
-        }))
-    }
-
-    const addTagField = () => {
-        setFormData((prev) => ({
-            ...prev,
-            tags: [...formData.tags, ""]
-        }))
-    }
-
-    const removeTagField = (index) => {
-        const updated = [...formData.tags];
-        updated.splice(index, 1);
-        setFormData((prev) => ({
-            ...prev,
-            tags: [...updated]
-        }))
+    const handleEditItem = async (formData) => {
+        try {
+            const res = await axios.put(`${API}/vendors/foods/${editingItem._id}`, formData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            console.log(res.data.message);
+            setEditingItem(null);
+            setShowModal(false);
+            fetchData();
+        } catch (error) {
+            console.error(error.response?.data?.message);
+        }
     }
 
     return (
-        <div>
-            <p>Vendor Dashboard</p>
-            <button onClick={logout}>Logout</button>
-            <div>
-                    {foodItems.map((foodItem, index) => (
-                        <div key={index}>
-                            {foodItem.name} {foodItem.price}
-                            <button onClick={() => deleteFoodItem(foodItem)}>
-                                Delete
-                            </button>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+                    <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Food Menu Dashboard</h1>
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add New Item
+                    </button>
+                </div>
+
+                {(showModal || editingItem) && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <FoodItemForm
+                            item={editingItem}
+                            onSubmit={editingItem ? handleEditItem : handleAddItem}
+                            onCancel={() => {
+                            setShowModal(false)
+                            setEditingItem(null)
+                            }}
+                        />
+                    </div>
+                </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {foodItems.map((item) => (
+                    <div key={item._id} className="bg-white rounded-lg shadow-md p-6">
+                    <div className="flex justify-between items-start mb-4">
+                        <div>
+                        <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
+                        <p className="text-2xl font-bold text-orange-600">₹{item.price}</p>
                         </div>
-                    ))}
-            </div>
-            <div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-green-600 text-white px-4 py-2 rounded"
-                >
-                    Add Food Item
-                </button>
-
-                {showModal && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black z-50">
-                        <div className="bg-white p-6 rounded-lg w-full max-w-md shadow-xl relative">
-                            <h2 className="text-xl font-semibold mb-4">Add Food Item</h2>
-                            <form onSubmit={handleSubmit} className="space-y-4">
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Food Name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full p-2 border rounded"
-                                />
-                                <input
-                                    type="number"
-                                    name="price"
-                                    placeholder="Price"
-                                    value={formData.price}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full p-2 border rounded"
-                                />
-                                <select
-                                    name="category"
-                                    value={formData.category}
-                                    onChange={handleChange}
-                                    className="w-full p-2 border rounded"
-                                >
-                                    <option value="Veg">Veg</option>
-                                    <option value="Non-Veg">Non-Veg</option>
-                                </select>
-                                
-                                <p>Addons</p>
-                                {formData.addons.map((addon, index) => (
-                                    <div key={index}>
-                                        <input 
-                                            name="name"
-                                            placeholder="Addon Name"
-                                            value={addon.name}
-                                            onChange={(e) => handleAddonChange(index, e)}                                         
-                                        />
-                                        <input 
-                                            name="price"
-                                            type="Number"
-                                            placeholder="Price"
-                                            value={addon.price}                  
-                                            onChange={(e) => handleAddonChange(index, e)}                                         
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeAddonField(index)}
-                                            className="text-red-500"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                ))}
-                                <button
-                                    type="button"
-                                    onClick={addAddonField}
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    ➕ Add Addon
-                                </button>
-
-                                <p>Tags</p>
-                                {formData.tags.map((tag, index) => (
-                                    <div key={index}>
-                                        <input 
-                                            value={tag}
-                                            placeholder="Tag Name"
-                                            onChange={(e) => handleTagChange(e, index)}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => removeTagField(index)}
-                                            className="text-red-500"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
-                                ))}
-                                <button
-                                    type="button"
-                                    onClick={addTagField}
-                                    className="text-blue-500 hover:underline"
-                                >
-                                    ➕ Add Tag
-                                </button>
-
-                                <div className="flex justify-end gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                        className="px-4 py-2 bg-gray-400 text-white rounded"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-4 py-2 bg-blue-600 text-white rounded"
-                                    >
-                                        Submit
-                                    </button>
-                                </div>
-                            </form>
-                            <button
-                                className="absolute top-2 right-3 text-xl"
-                                onClick={() => setShowModal(false)}
-                            >
-                                ×
-                            </button>
+                        <div className="flex space-x-2">
+                        <button
+                            onClick={() => setEditingItem(item)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        >
+                            <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => deleteFoodItem(item._id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
                         </div>
                     </div>
-                )}
+
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                        <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.category == "Veg" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            }`}
+                        >
+                            {item.category == "Veg" ? "🟢 Veg" : "🔴 Non-Veg"}
+                        </span>
+                        <div className="flex items-center">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span className="ml-1 text-sm text-gray-600">{item.rating}/5</span>
+                        </div>
+                        </div>
+
+                        <div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Tags:</p>
+                        <div className="flex flex-wrap gap-1">
+                            {item.tags.map((tag) => (
+                            <span key={tag} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                {tag}
+                            </span>
+                            ))}
+                        </div>
+                        </div>
+
+                        <div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Add-ons:</p>
+                        <div className="space-y-1">
+                            {item.addons.map((addon) => (
+                            <div key={addon.name} className="flex justify-between text-sm text-gray-600">
+                                <span>{addon.name}</span>
+                                <span>+₹{addon.price}</span>
+                            </div>
+                            ))}
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                ))}
+                </div>
             </div>
         </div>
     )

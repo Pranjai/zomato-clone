@@ -4,8 +4,36 @@ const Vendor = require('../models/Vendor');
 const FoodItem = require('../models/FoodItem');
 const auth = require('../middlewares/auth');
 
+router.get('/profile', auth, async (req, res) => {
+    const vendorId = req.userId;
+    try {
+        const vendor = await Vendor.findById(vendorId).select('-password');
+        if(!vendor) {
+            return res.status(404).json({ message: "Vendor not found." });
+        }
+        return res.status(200).json(vendor);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
+router.put('/profile', auth, async (req, res) => {
+    const vendorId = req.userId;
+    try {
+        const updatedVendor = await Vendor.findByIdAndUpdate(vendorId, req.body, { new: true }).select('-password');
+        if(!updatedVendor) {
+            return res.status(404).json({ message: "Vendor not found." });
+        }
+        return res.status(200).json({ message: "Profile updated successfully.", vendor: updatedVendor });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+});
+
 router.post('/foods', auth, async (req, res) => {
-    const { item } = req.body;
+    const item = req.body;
     
     try {
         const vendorExists = await Vendor.exists({ _id: req.userId });
@@ -50,7 +78,7 @@ router.delete('/foods/:id', auth, async (req, res) => {
 
 router.put('/foods/:id', auth, async (req, res) => {
     const { id } = req.params;
-    const { item } = req.body;
+    const item = req.body;
     try {
         const updatedItem = await FoodItem.findByIdAndUpdate(id, item, { new: true });
         if(!updatedItem) {

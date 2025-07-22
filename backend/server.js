@@ -4,7 +4,8 @@ const mongoose = require('mongoose');
 
 const login = require('./routes/login');
 const signup = require('./routes/signup');
-const vendors = require('./routes/vendors')
+const vendors = require('./routes/vendors');
+const buyers = require('./routes/buyers');
 
 const DB_NAME = "zomato";
 
@@ -24,6 +25,7 @@ connection.once('open', () => {
 app.use('/login', login);
 app.use('/signup', signup);
 app.use('/vendors', vendors);
+app.use('/buyers', buyers);
 
 app.listen(PORT, () => {
     console.log("Server is running on port: " + PORT);
