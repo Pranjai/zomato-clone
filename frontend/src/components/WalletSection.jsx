@@ -1,14 +1,14 @@
 import { useState } from "react"
 import { Wallet, Plus } from "lucide-react"
 
-const WalletSection = ({ walletBalance, setWalletBalance }) => {
+const WalletSection = ({ walletBalance, addMoney }) => {
     const [addAmount, setAddAmount] = useState("")
     const [showAddMoney, setShowAddMoney] = useState(false)
 
     const handleAddMoney = () => {
         const amount = Number.parseInt(addAmount)
         if (amount > 0) {
-            setWalletBalance((prev) => prev + amount)
+            addMoney(amount)
             setAddAmount("")
             setShowAddMoney(false)
             alert(`₹${amount} added to wallet successfully!`)
@@ -17,7 +17,7 @@ const WalletSection = ({ walletBalance, setWalletBalance }) => {
 
     return (
         <div className="bg-white rounded-lg shadow-md p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center">
                     <Wallet className="w-5 h-5 text-green-600 mr-2" />
                     <div>

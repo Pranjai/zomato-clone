@@ -13,9 +13,9 @@ const FoodItemCard = ({ item, isFavorite, onToggleFavorite, onOrder }) => {
     }
 
     const calculateTotal = () => {
-        const basePrice = item.price * quantity
+        const basePrice = item.price
         const addonPrice = selectedAddons.reduce((sum, addon) => sum + addon.price, 0)
-        return basePrice + addonPrice
+        return (basePrice + addonPrice) * quantity
     }
 
     const handleOrder = () => {
@@ -52,7 +52,7 @@ const FoodItemCard = ({ item, isFavorite, onToggleFavorite, onOrder }) => {
                 <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center text-sm text-gray-600 mb-2">
                         <MapPin className="w-4 h-4 mr-1" />
-                        <span>{item.vendor}</span>
+                        <span>{item.vendor.shopName}</span>
                     </div>
                     <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${item.category == "Veg" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
@@ -115,7 +115,7 @@ const FoodItemCard = ({ item, isFavorite, onToggleFavorite, onOrder }) => {
                                             <div className="flex items-center">
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedAddons.find((a) => a.name === addon.name)}
+                                                    checked={selectedAddons.length && selectedAddons.find((a) => a.name === addon.name)}
                                                     onChange={() => handleAddonChange(addon)}
                                                     className="text-orange-600 focus:ring-orange-500 rounded"
                                                 />

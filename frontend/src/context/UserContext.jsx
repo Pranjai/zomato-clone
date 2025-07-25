@@ -5,6 +5,7 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
     const [token, setToken] = useState();
     const [user, setUser] = useState();
+    const [loading, setLoading] = useState(true);
 
     const login = (token, user) => {
         localStorage.setItem('token', token);
@@ -28,10 +29,11 @@ export const UserProvider = ({ children }) => {
         if (storedUser) {
             setUser(storedUser);
         }
+        setLoading(false);
     }, []);
 
     return (
-        <UserContext.Provider value ={{ user, token, login, logout, isLoggedIn: !!token }}>
+        <UserContext.Provider value ={{ user, token, login, logout, isLoggedIn: !!token, loading }}>
             { children }
         </UserContext.Provider>
     )

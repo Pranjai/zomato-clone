@@ -25,7 +25,11 @@ const buyerSchema = new mongoose.Schema({
     batchName: {
         type: String,
         required: true,
-    }
+    },
+    walletBalance: {
+        type: Number,
+        default: 0,
+    },
 })
 
 module.exports = mongoose.model('Buyer', buyerSchema);

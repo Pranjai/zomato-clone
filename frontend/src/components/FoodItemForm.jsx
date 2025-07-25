@@ -134,10 +134,10 @@ function FoodItemForm({ item, onSubmit, onCancel }) {
                         </button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                        {foodItem.tags.map((tag) => (
-                            <span key={tag} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center">
+                        {foodItem.tags.map((tag, index) => (
+                            <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm flex items-center">
                                 {tag}
-                                <button type="button" onClick={() => removeTag(tag)} className="ml-2 text-gray-500">
+                                <button type="button" onClick={() => removeTag(index)} className="ml-2 text-gray-500">
                                     <X className="w-3 h-3" />
                                 </button>
                             </span>

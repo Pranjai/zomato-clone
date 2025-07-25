@@ -3,6 +3,7 @@ const router = express.Router();
 const Vendor = require('../models/Vendor');
 const FoodItem = require('../models/FoodItem');
 const auth = require('../middlewares/auth');
+const Order = require('../models/Order');
 
 router.get('/profile', auth, async (req, res) => {
     const vendorId = req.userId;
@@ -90,5 +91,15 @@ router.put('/foods/:id', auth, async (req, res) => {
         return res.status(500).json({ message: "Internal Server Error" });
     }
 });
+
+router.get('/orders', auth, async (req, res) => {
+    try {
+        const orders = await Order.find({ vendor: req.userId }).populate('buyer', 'name');
+        return res.status(200).json(orders);
+    } catch(error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal Server Error "})
+    }
+})
 
 module.exports = router;

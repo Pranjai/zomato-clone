@@ -5,12 +5,13 @@ import WalletSection from "./WalletSection";
 import SearchBar from "./SearchBar";
 import FilterSection from "./FilterSection";
 import { useState, useEffect } from "react";
+import api from "../api/axiosInstance";
 
 function BuyerDashboard() {
     const { user } = useUser();
     const [activeTab, setActiveTab] = useState("all");
     const [favorites, setFavorites] = useState([]);
-    const [walletBalance, setWalletBalance] = useState(0);
+    const [walletBalance, setWalletBalance] = useState();
     const [foodItems, setFoodItems] = useState([]);
     const [filteredItems, setFilteredItems] = useState([]);
 
@@ -27,7 +28,7 @@ function BuyerDashboard() {
         }
 
         if (filters.vendors.length > 0) {
-            filtered = filtered.filter((item) => filters.vendors.includes(item.vendor))
+            filtered = filtered.filter((item) => filters.vendors.includes(item.vendor.shopName))
         }
 
         if (filters.tags.length > 0) {
@@ -69,61 +70,55 @@ function BuyerDashboard() {
         })
     }
 
-    const handleOrder = (item, quantity, addons) => {
-        const totalPrice = item.price * quantity + addons.reduce((sum, addon) => sum + addon.price, 0)
+    const fetchWalletBalance = async () => {
+        try {
+            const res = await api.get('/buyers/profile');
+            setWalletBalance(res.data.walletBalance);
+        } catch (error) {
+            console.error("Error fetching wallet balance:", error);
+            alert("Failed to fetch wallet balance. Please try again later.");
+        }
+    }
+
+    const handleAddMoney = async (amount) => {
+        try {
+            const res = await api.put('/buyers/profile', { walletBalance: walletBalance + amount });
+            fetchWalletBalance();
+            alert(`₹${amount} added to wallet successfully!`);
+        } catch (error) {
+            console.error("Error adding money to wallet:", error);
+        }
+    }
+
+    const fetchMenu = async () => {
+        try {
+            const res = await api.get('/buyers/menu');
+            setFoodItems(res.data);
+            setFilteredItems(res.data);
+        } catch (error) {
+            console.error("Error fetching menu:", error);
+            alert("Failed to fetch menu. Please try again later.");
+        }
+    }
+
+    const handleOrder = async (item, quantity, addons) => {
+        const totalPrice = (item.price + addons.reduce((sum, addon) => sum + addon.price, 0)) * quantity
         if (walletBalance < totalPrice) {
             alert("Insufficient wallet balance. Please add money to your wallet.")
             return
         }
-        setWalletBalance((prev) => prev - totalPrice)
-        alert(`Order placed for ${item.name} with quantity ${quantity} and addons: ${addons.map(a => a.name).join(", ")}. Total: ₹${totalPrice}.`)
+        handleAddMoney(-totalPrice);
+        try {
+            const res = await api.post('orders/', { item, quantity, addons })
+            console.log(res.data.message);
+        } catch(error) {
+            console.error(error);
+        }
     }
 
     useEffect(() => {
-        const mockFoodItems = [
-            {
-                _id: 1,
-                name: "Cheese Maggi",
-                price: 50,
-                rating: 4.5,
-                category: "Veg",
-                vendor: "BBC",
-                tags: ["Hot", "Noodles"],
-                image: "/placeholder.svg?height=200&width=200",
-                addons: [
-                    { name: "Extra Cheese", price: 20 },
-                    { name: "Sauce", price: 10 },
-                ],
-            },
-            {
-                _id: 2,
-                name: "Chicken Biryani",
-                price: 120,
-                rating: 4.8,
-                category: "Non-Veg",
-                vendor: "JC",
-                tags: ["Hot", "Rice"],
-                addons: [
-                    { name: "Extra Raita", price: 15 },
-                    { name: "Pickle", price: 5 },
-                ],
-            },
-            {
-                _id: 3,
-                name: "Cold Coffee",
-                price: 40,
-                rating: 4.2,
-                category: "Veg",
-                vendor: "VC",
-                tags: ["Cold", "Drinks"],
-                addons: [
-                    { name: "Extra Shot", price: 10 },
-                    { name: "Whipped Cream", price: 15 },
-                ],
-            },
-        ]
-        setFoodItems(mockFoodItems)
-        setFilteredItems(mockFoodItems)
+        fetchWalletBalance();
+        fetchMenu();
     }, [])
 
         return (
@@ -131,7 +126,7 @@ function BuyerDashboard() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Food Dashboard</h1>
-                        <WalletSection walletBalance={walletBalance} setWalletBalance={setWalletBalance} />
+                        <WalletSection walletBalance={walletBalance} addMoney={handleAddMoney} />
                     </div>
 
                     <div className="mb-8 space-y-4">

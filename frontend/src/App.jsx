@@ -6,6 +6,8 @@ import BuyerDashboard from './components/BuyerDashboard'
 import VendorDashboard from './components/VendorDashboard'
 import VendorProfile from './components/VendorProfile'
 import BuyerProfile from './components/BuyerProfile'
+import MyOrders from './components/MyOrders'
+import VendorOrders from './components/VendorOrders'
 import Navbar from './components/Navbar'
 import { useUser } from './context/UserContext'
 import './App.css'
@@ -20,6 +22,7 @@ function App() {
           <Route path='/' element={isLoggedIn ? user?.userType == "Buyer" ? <BuyerDashboard /> : <VendorDashboard /> : <Login />} />
           <Route path='/signup' element={isLoggedIn ? <Navigate to='/' replace /> : <Signup />} />
           <Route path='/profile' element={<ProtectedRoute>{user?.userType == "Buyer" ? <BuyerProfile /> : <VendorProfile />}</ProtectedRoute>} />
+          <Route path='/orders' element={<ProtectedRoute>{user?.userType == "Buyer" ? <MyOrders /> : <VendorOrders />}</ProtectedRoute>} />
         </Routes>
       </div>
     </div>

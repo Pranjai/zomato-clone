@@ -6,6 +6,7 @@ const login = require('./routes/login');
 const signup = require('./routes/signup');
 const vendors = require('./routes/vendors');
 const buyers = require('./routes/buyers');
+const orders = require('./routes/orders')
 
 const DB_NAME = "zomato";
 
@@ -26,6 +27,7 @@ app.use('/login', login);
 app.use('/signup', signup);
 app.use('/vendors', vendors);
 app.use('/buyers', buyers);
+app.use('/orders', orders);
 
 app.listen(PORT, () => {
     console.log("Server is running on port: " + PORT);
